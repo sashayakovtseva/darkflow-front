@@ -57,7 +57,17 @@ type darkflowRequest struct {
 	OutputDir string `json:"output_dir"`
 }
 
+func setupResponse(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
+
 func recognize(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodOptions {
+		setupResponse(w)
+		return
+	}
 	var req recognizeRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil || len(req.ImageURLs) == 0 {
@@ -144,6 +154,7 @@ func jsonError(w http.ResponseWriter, status int, err error) {
 }
 
 func jsonResponse(w http.ResponseWriter, status int, payload interface{}) {
+	setupResponse(w)
 	w.WriteHeader(status)
 	err := json.NewEncoder(w).Encode(payload)
 	if err != nil {
@@ -158,3 +169,4 @@ func generateID(len int) string {
 	rand.Read(buf)
 	return hex.EncodeToString(buf)[:len]
 }
+
